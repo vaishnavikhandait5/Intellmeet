@@ -281,7 +281,7 @@ Use:
 # Project Status
 
 ```text
-Week 1 Backend Foundation Completed Successfully
+Week 1 Backend Foundation on running.
 ```
 
 ---
