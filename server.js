@@ -5,6 +5,11 @@ const helmet = require("helmet");
 const http = require("http");
 const { Server } = require("socket.io");
 
+//Authentication
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("./models/User");
+
 
 const authRoutes = require("./routes/authRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
@@ -40,6 +45,125 @@ const io = new Server(server, {
 });
 
 socketHandler(io);
+
+//signup
+app.post("/signup", async (req, res) => {
+
+  try {
+
+    const {name, email, password } = req.body;
+
+    // Check existing user
+    const existingUser = await User.findOne({
+      email
+    });
+
+    if (existingUser) {
+
+      return res.json({
+        message: "User already exists"
+      });
+
+    }
+
+    // Hash password
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
+
+    // Save user
+    const user = new User({
+      name, 
+      
+      email,
+
+      password: hashedPassword
+
+    });
+
+    await user.save();
+
+    res.json({
+      message: "Signup successful"
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.json({
+      message: "Signup failed"
+    });
+
+  }
+
+});
+
+
+//login
+app.post("/login", async (req, res) => {
+
+  try {
+
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({
+      email
+    });
+
+    if (!user) {
+
+      return res.json({
+        message: "User not found"
+      });
+
+    }
+
+    // Compare password
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
+
+    if (!isMatch) {
+
+      return res.json({
+        message: "Wrong password"
+      });
+
+    }
+
+    // JWT token
+    const token = jwt.sign(
+
+      { id: user._id },
+
+      "mysecretkey"
+
+    );
+
+    res.json({
+
+      message: "Login successful",
+
+      token
+
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.json({
+      message: "Login failed"
+    });
+
+  }
+
+});
+
+
 
 server.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
