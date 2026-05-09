@@ -5,18 +5,20 @@ const helmet = require("helmet");
 const http = require("http");
 const { Server } = require("socket.io");
 
-const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const meetingRoutes = require("./routes/meetingRoutes");
 
 const socketHandler = require("./socket/socketHandler");
 
-dotenv.config();
 
-connectDB();
+const mongoose = require("mongoose");
+require("dotenv").config();
+const connectDB = require("./config/db");
 
 const app = express();
+
+connectDB();
 
 app.use(express.json());
 app.use(cors());
